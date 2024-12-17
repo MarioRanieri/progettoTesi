@@ -9,8 +9,10 @@ import org.springframework.stereotype.Component;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 
@@ -28,11 +30,20 @@ public class JwtUtil {
     }
 
     public String generateToken(String username, Set<String> authorities) {
-        Map<String, Object> claims=new HashMap<>();
-        claims.put("authorities", authorities);
-        System.out.println("ora genero il token in auth-service1/JwtUtil: ");
-        return createToken(claims, username);
-    }
+    Map<String, Object> claims = new HashMap<>();
+    List<Map<String, String>> authoritiesList = authorities.stream()
+            .map(authority -> {
+                Map<String, String> map = new HashMap<>();
+                map.put("authority", authority.startsWith("ROLE_") ? authority : "ROLE_" + authority);
+                return map;
+            })
+            .collect(Collectors.toList());
+
+    claims.put("authorities", authoritiesList);
+    System.out.println("\n ora genero il token in auth-service1/JwtUtil: ");
+    return createToken(claims, username);
+}
+
 
     private String createToken(Map<String, Object> claims, String subject) {
         System.out.println("ora creo il token in auth-service1/JwtUtil: ");

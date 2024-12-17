@@ -11,7 +11,10 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtUtil {
@@ -58,17 +61,18 @@ public class JwtUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public Set<String> getRolesFromToken(String token) {
-        Claims claims = getClaims(token);
-        Object authorities = claims.get("authorities");
-        if (authorities instanceof Set<?>) {
-            LOGGER.info("\nin app-service2/JwtUtil,\n Authorities from token: " + authorities);
-            return (Set<String>) authorities;
-        } else {
-            LOGGER.warning("\nin app-service2/JwtUtil,\n No authorities found in token");
-            return new HashSet<>();
-        }
+public Set<String> getRolesFromToken(String token) {
+    Claims claims = getClaims(token);
+    Object authorities = claims.get("authorities");
+    if (authorities instanceof List<?>) {
+        return ((List<Map<String, String>>) authorities).stream()
+            .map(map -> map.get("authority").replace("ROLE_ROLE", "ROLE_"))
+            .collect(Collectors.toSet());
+    } else {
+        return new HashSet<>();
     }
+}
+
 }
 
 

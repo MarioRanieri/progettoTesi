@@ -51,7 +51,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 if (username != null && jwtUtil.validateToken(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
                     Set<String> roles = jwtUtil.getRolesFromToken(jwt).stream()
-                        .map(role -> "ROLE_" + role)
+                        .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
                         .collect(Collectors.toSet());
                     LOGGER.info("Roles \nfrom\n Token: " + roles);
                     UserDetails userDetails = new User(username, "", roles.stream()
