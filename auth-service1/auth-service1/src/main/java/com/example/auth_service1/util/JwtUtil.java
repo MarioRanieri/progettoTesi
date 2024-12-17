@@ -30,31 +30,45 @@ public class JwtUtil {
     }
 
     public String generateToken(String username, Set<String> authorities) {
-    Map<String, Object> claims = new HashMap<>();
-    List<Map<String, String>> authoritiesList = authorities.stream()
-            .map(authority -> {
-                Map<String, String> map = new HashMap<>();
-                map.put("authority", authority.startsWith("ROLE_") ? authority : "ROLE_" + authority);
-                return map;
-            })
-            .collect(Collectors.toList());
-
-    claims.put("authorities", authoritiesList);
-    System.out.println("\n ora genero il token in auth-service1/JwtUtil: ");
-    return createToken(claims, username);
-}
-
-
-    private String createToken(Map<String, Object> claims, String subject) {
-        System.out.println("ora creo il token in auth-service1/JwtUtil: ");
-        return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(subject)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 ora
-                .signWith(getKey(), SignatureAlgorithm.HS256)
-                .compact();
+        Map<String, Object> claims = new HashMap<>();
+        List<Map<String, String>> authoritiesList = authorities.stream()
+                .map(authority -> {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("authority", authority.startsWith("ROLE_") ? authority : "ROLE_" + authority);
+                    return map;
+                })
+                .collect(Collectors.toList());
+    
+        claims.put("authorities", authoritiesList);
+        System.out.println("\n ora genero il token in auth-service1/JwtUtil: ");
+        String token = createToken(claims, username);
+        System.out.println("Token generato: " + token);
+        return token;
     }
+    
+    private String createToken(Map<String, Object> claims, String subject) {
+        try {
+            System.out.println("Claims: " + claims);
+            System.out.println("Subject: " + subject);
+    
+            String token = Jwts.builder()
+                    .setClaims(claims)
+                    .setSubject(subject)
+                    .setIssuedAt(new Date(System.currentTimeMillis()))
+                    .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 ora
+                    .signWith(getKey(), SignatureAlgorithm.HS256)
+                    .compact();
+            System.out.println("Token creato: " + token);
+            return token;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Errore durante la creazione del token: " + e.getMessage());
+            return null;
+        }
+    }
+    
+    
+
 }
 
 
