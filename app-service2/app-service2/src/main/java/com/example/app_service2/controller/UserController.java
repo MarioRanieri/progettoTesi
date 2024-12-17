@@ -61,13 +61,13 @@ public class UserController {
         String authorizationHeader = headers.getFirst(HttpHeaders.AUTHORIZATION); 
         
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-             LOGGER.severe("Authorization header is missing or does not contain a Bearer token"); 
-             return "Authorization header is missing or invalid"; 
+             LOGGER.severe("in UserController, Authorization header is missing or does not contain a Bearer token"); 
+             return "in UserController, Authorization header is missing or invalid"; 
             } 
             String token = authorizationHeader.substring(7); LOGGER.info("Token ricevuto: " + token); 
             if (!jwtUtil.validateToken(token)) { 
-                LOGGER.severe("Token JWT non valido"); 
-                return "Invalid JWT token"; 
+                LOGGER.severe(" in UserController, Token JWT non valido"); 
+                return "in UserController, Invalid JWT token"; 
             } 
             return "Accesso riuscito"; 
         }

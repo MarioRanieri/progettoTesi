@@ -6,6 +6,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.SecurityException;
 import io.jsonwebtoken.UnsupportedJwtException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,7 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         final String authorizationHeader = request.getHeader("Authorization");
 
-        LOGGER.info("Authorization Header: " + authorizationHeader);
+        LOGGER.info("Authorization \n Header in\n JwtFilter: " + authorizationHeader);
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String jwt = authorizationHeader.substring(7);
@@ -46,13 +47,13 @@ public class JwtFilter extends OncePerRequestFilter {
             try {
                 Claims claims = jwtUtil.getClaims(jwt);
                 String username = claims.getSubject();
-                LOGGER.info("Username from Claims: " + username);
+                LOGGER.info("Username\n from Claims: " + username);
 
                 if (username != null && jwtUtil.validateToken(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
                     Set<String> roles = jwtUtil.getRolesFromToken(jwt).stream()
                         .map(role -> "ROLE_" + role)
                         .collect(Collectors.toSet());
-                    LOGGER.info("Roles from Token: " + roles);
+                    LOGGER.info("Roles \nfrom\n Token: " + roles);
                     UserDetails userDetails = new User(username, "", roles.stream()
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList()));
@@ -73,7 +74,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 throw new ServletException("Token claims string is empty.", e);
             }
         } else {
-            LOGGER.warning("JWT is invalid or Authorization header is missing");
+            LOGGER.warning("in JwtFilter, JWT missingis invalid or Authorization header is ");
         }
 
         chain.doFilter(request, response);

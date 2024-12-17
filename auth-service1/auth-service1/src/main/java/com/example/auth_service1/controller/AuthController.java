@@ -27,27 +27,27 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
         try {
-            LOGGER.info("Tentativo di registrazione per l'utente in AuthController: " + user.getUsername());
+            LOGGER.info("Tentativo di registrazione per l'utente in auth-serive1/AuthController: " + user.getUsername());
             User savedUser = userService.registerUser(user);
-            LOGGER.info("Registrazione riuscita per l'utente in AuthController: " + savedUser.getUsername());
+            LOGGER.info("Registrazione riuscita per l'utente in auth-serive1/AuthController: " + savedUser.getUsername());
             return ResponseEntity.ok(savedUser);
         } catch (Exception e) {
-            LOGGER.severe("Errore durante la registrazione in AuthController: " + e.getMessage());
+            LOGGER.severe("Errore durante la registrazione in auth-serive1/AuthController: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(500).body("Errore durante la registrazione in AuthController: " + e.getMessage());
+            return ResponseEntity.status(500).body("Errore durante la registrazione in auth-serive1/AuthController: " + e.getMessage());
         }
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestParam String username, @RequestParam String password) {
         try {
-            LOGGER.info("Tentativo di login per l'utente: " + username);
+            LOGGER.info("in auth-serive1/AuthController, Tentativo di login per l'utente: " + username);
             User authenticatedUser = userService.authenticateUser(username, password);
             String token = jwtUtil.generateToken(authenticatedUser.getUsername(), authenticatedUser.getAuthorities());
-            LOGGER.info("Token JWT generato con successo per l'utente: " + username);
+            LOGGER.info("in auth-serive1/AuthController, Token JWT generato con successo per l'utente: " + username);
             return ResponseEntity.ok(Collections.singletonMap("token", token));
         } catch (UserNotFoundException e) {
-            LOGGER.severe("Errore durante il login: " + e.getMessage());
+            LOGGER.severe("in auth-serive1/AuthController, Errore durante il login: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }

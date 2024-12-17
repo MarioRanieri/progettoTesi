@@ -25,7 +25,7 @@ public class UserService {
 
     public User findByUsername(String username) {
         Optional<User> userOptional=userRepository.findByUsername(username);
-        System.out.println("vero o ofalso? " + userOptional.isPresent());
+        System.out.println("ture or false? " + userOptional.isPresent());
         if (userOptional.isPresent()) {
             System.out.println("User trovato in app-service2/userService: " + userOptional.get().getUsername());
             return userOptional.get();

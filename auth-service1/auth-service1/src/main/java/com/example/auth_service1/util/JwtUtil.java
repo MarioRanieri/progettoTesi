@@ -23,16 +23,19 @@ public class JwtUtil {
 
     // Genera una SecretKey dalla chiave segreta 
     private SecretKey getKey() {
+        System.out.println("prendo la chiave dall'application.properties in auth-service1/JwtUtil: " + secret);
         return Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
     }
 
     public String generateToken(String username, Set<String> authorities) {
         Map<String, Object> claims=new HashMap<>();
         claims.put("authorities", authorities);
+        System.out.println("ora genero il token in auth-service1/JwtUtil: ");
         return createToken(claims, username);
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
+        System.out.println("ora creo il token in auth-service1/JwtUtil: ");
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)

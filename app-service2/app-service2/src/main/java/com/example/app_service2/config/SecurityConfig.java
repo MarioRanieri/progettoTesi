@@ -1,14 +1,13 @@
 package com.example.app_service2.config;
 
+import com.example.app_service2.filter.JwtFilter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.jsonwebtoken.io.IOException;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.NonNull;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -28,11 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -42,7 +36,7 @@ public class SecurityConfig {
     private static final Logger LOGGER = Logger.getLogger(SecurityConfig.class.getName());
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authz -> authz
@@ -60,7 +54,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            .addFilterBefore(new JwtFilter(), UsernamePasswordAuthenticationFilter.class); 
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); 
             return http.build(); 
         }
 
@@ -69,23 +63,6 @@ public class SecurityConfig {
         return new JwtAuthenticationConverter();
     }
 
-    public static class JwtFilter extends OncePerRequestFilter {
-        @Override
-        protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
-                throws ServletException, IOException {
-            String authorizationHeader = request.getHeader("Authorization");
-            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-                String token = authorizationHeader.substring(7);
-                LOGGER.info("Token JWT ricevuto: " + token);
-            }
-            try {
-                filterChain.doFilter(request, response);
-            } catch (java.io.IOException | ServletException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -121,17 +98,15 @@ public class SecurityConfig {
         if (jwks == null || !jwks.containsKey("keys")) {
             throw new RuntimeException("Il JWKS non contiene il campo 'keys'");
         }
-
         ObjectMapper objectMapper = new ObjectMapper();
         List<Map<String, Object>> keys = objectMapper.convertValue(jwks.get("keys"), new TypeReference<List<Map<String, Object>>>() {});
-
         if (keys == null || keys.isEmpty()) {
             throw new RuntimeException("La lista 'keys' è vuota o null");
         }
-
         Map<String, Object> key = keys.get(0);
         BigInteger modulus = new BigInteger(1, Base64.getUrlDecoder().decode((String) key.get("n")));
         BigInteger exponent = new BigInteger(1, Base64.getUrlDecoder().decode((String) key.get("e")));
+        System.out.println("chiave pubblica generata!");
         return (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(new RSAPublicKeySpec(modulus, exponent));
     }
 }

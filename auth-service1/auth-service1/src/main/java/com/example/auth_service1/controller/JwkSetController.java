@@ -40,6 +40,7 @@ public class JwkSetController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("keys", List.of(jwks));
+        System.out.println("sono in authService1/JwkSetController ");
         return response;
     }
 }

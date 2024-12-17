@@ -23,16 +23,16 @@ public class JwtUtil {
 
     public SecretKey getKey() {
         if (secret == null) {
-            LOGGER.severe("Chiave segreta non trovata");
-            throw new RuntimeException("Chiave segreta non trovata");
+            LOGGER.severe("\nin app-service2/JwtUtil,\n Chiave segreta non trovata");
+            throw new RuntimeException("\n in app-service2/JwtUtil,\n Chiave segreta non trovata");
         }
-        LOGGER.info("Chiave segreta trovata: " + secret);
+        LOGGER.info("\nin app-service2/JwtUtil,\n Chiave segreta trovata: " + secret);
         return Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
     }
 
     public Claims getClaims(String token) {
         System.out.println("SONO QUI");
-        LOGGER.info("Getting claims for token: " + token);
+        LOGGER.info("\nin app-service2/JwtUtil,\n Getting claims for\n token: " + token);
         return Jwts.parserBuilder()
                 .setSigningKey(getKey())
                 .build()
@@ -41,19 +41,19 @@ public class JwtUtil {
     }
 
     public boolean validateToken(String token) {
-        LOGGER.info("Validating token: " + token);
+        LOGGER.info("\nin app-service2/JwtUtil,\n Validating\n token: " + token);
         try {
             Claims claims = getClaims(token);
             return !isTokenExpired(claims);
         } catch (Exception e) {
-            LOGGER.severe("Token validation failed: " + e.getMessage());
+            LOGGER.severe("\nin app-service2/JwtUtil,\n Token\n validation failed: " + e.getMessage());
             return false;
         }
     }
 
     private boolean isTokenExpired(Claims claims) {
         boolean expired = claims.getExpiration().before(new Date());
-        LOGGER.info("Is token expired: " + expired);
+        LOGGER.info("\nin app-service2/JwtUtil,\n Is token\n expired: " + expired);
         return expired;
     }
 
@@ -62,10 +62,10 @@ public class JwtUtil {
         Claims claims = getClaims(token);
         Object authorities = claims.get("authorities");
         if (authorities instanceof Set<?>) {
-            LOGGER.info("Authorities from token: " + authorities);
+            LOGGER.info("\nin app-service2/JwtUtil,\n Authorities from token: " + authorities);
             return (Set<String>) authorities;
         } else {
-            LOGGER.warning("No authorities found in token");
+            LOGGER.warning("\nin app-service2/JwtUtil,\n No authorities found in token");
             return new HashSet<>();
         }
     }

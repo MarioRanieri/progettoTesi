@@ -56,7 +56,7 @@ public class UserService {
         HttpResponse<JsonNode> response = Unirest.get("http://localhost:8082/app-service2/check-username")
                 .queryString("username", user.getUsername())
                 .asJson();
-        System.out.println("Controllo dell'username in app-service2 effettuato!");
+        System.out.println("Controllo dell'username in app-service2 effettuato! questa è la chiamata unirest in auth-service1/UserService ");
         if (response.getBody().getObject().getBoolean("exists")) {
             throw new IllegalArgumentException("Username già in uso!");
         }
@@ -100,15 +100,15 @@ public class UserService {
         System.out.println("Corpo della risposta: " + response.getBody().toString());
         if (response.getStatus() != 200) {
             System.out.println("Autenticazione fallita in auth-service1/userService/authenticateUser per: " + username);
-            throw new UserNotFoundException("Invalid username or password");
+            throw new UserNotFoundException("in auth-service1/UserService, Invalid username or password");
         }
         User user = this.findByUsername(username);
         if (this.validatePassword(password, user.getPassword())) {
-            System.out.println("User autenticato: " + username);
+            System.out.println("User autenticato in auth-service1/UserService: " + username);
             return user;
         } else {
             System.out.println("Password non valida per: " + username);
-            throw new UserNotFoundException("Invalid username or password");
+            throw new UserNotFoundException("in auth-service1/UserService, Invalid username or password");
         }
     }
 
