@@ -24,6 +24,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // Disabilita CSRF
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/auth/register", "/auth/login", "/oauth2/jwks").permitAll() // Endpoint pubblici
+                .requestMatchers("/auth/delete").permitAll() // Permetti l'eliminazione senza autenticazione (solo per test)
                 .anyRequest().authenticated() // Tutti gli altri endpoint richiedono autenticazione
             )
             .formLogin(form -> form

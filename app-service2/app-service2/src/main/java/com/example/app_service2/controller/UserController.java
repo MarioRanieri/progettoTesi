@@ -58,14 +58,19 @@ public class UserController {
 
     @GetMapping("/user-endpoint") 
     public String userEndpoint(@RequestHeader HttpHeaders headers) { 
+        System.err.println("SONO IN USER ENDPOINT!!!!!!!!");
         String authorizationHeader = headers.getFirst(HttpHeaders.AUTHORIZATION); 
         
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
              LOGGER.severe("in UserController, Authorization header is missing or does not contain a Bearer token"); 
              return "in UserController, Authorization header is missing or invalid"; 
             } 
-            String token = authorizationHeader.substring(7); LOGGER.info("Token ricevuto: " + token); 
-            if (!jwtUtil.validateToken(token)) { 
+            String token = authorizationHeader.substring(7); 
+            LOGGER.info("Token ricevuto: " + token); 
+            // Estrai il nome utente dal token 
+            String username = jwtUtil.getClaims(token).getSubject(); 
+            User user = userService.findByUsername(username);
+            if (!jwtUtil.validateToken(token, user)) { 
                 LOGGER.severe(" in UserController, Token JWT non valido"); 
                 return "in UserController, Invalid JWT token"; 
             } 

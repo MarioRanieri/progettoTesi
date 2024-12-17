@@ -27,27 +27,38 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
         try {
-            LOGGER.info("Tentativo di registrazione per l'utente in auth-serive1/AuthController: " + user.getUsername());
+            LOGGER.info("Tentativo di registrazione per l'utente in auth-service1/AuthController: " + user.getUsername());
             User savedUser = userService.registerUser(user);
-            LOGGER.info("Registrazione riuscita per l'utente in auth-serive1/AuthController: " + savedUser.getUsername());
+            LOGGER.info("Registrazione riuscita per l'utente in auth-service1/AuthController: " + savedUser.getUsername());
             return ResponseEntity.ok(savedUser);
         } catch (Exception e) {
-            LOGGER.severe("Errore durante la registrazione in auth-serive1/AuthController: " + e.getMessage());
+            LOGGER.severe("Errore durante la registrazione in auth-service1/AuthController: " + e.getMessage());
             e.printStackTrace();
-            return ResponseEntity.status(500).body("Errore durante la registrazione in auth-serive1/AuthController: " + e.getMessage());
+            return ResponseEntity.status(500).body("Errore durante la registrazione in auth-service1/AuthController: " + e.getMessage());
         }
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestParam String username, @RequestParam String password) {
         try {
-            LOGGER.info("in auth-serive1/AuthController, Tentativo di login per l'utente: " + username);
+            LOGGER.info("in auth-service1/AuthController, Tentativo di login per l'utente: " + username);
+
+            // Controlla se l'utente è già loggato
+            if (userService.isUserLoggedIn(username)) {
+                LOGGER.severe("in auth-service1/AuthController, User is already logged in: " + username);
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("User is already logged in.");
+            }
+
             User authenticatedUser = userService.authenticateUser(username, password);
             String token = jwtUtil.generateToken(authenticatedUser.getUsername(), authenticatedUser.getAuthorities());
-            LOGGER.info("in auth-serive1/AuthController, Token JWT generato con successo per l'utente: " + username);
+
+            // Imposta l'utente come loggato
+            userService.setUserLoggedIn(username);
+
+            LOGGER.info("in auth-service1/AuthController, Token JWT generato con successo per l'utente: " + username);
             return ResponseEntity.ok(Collections.singletonMap("token", token));
         } catch (UserNotFoundException e) {
-            LOGGER.severe("in auth-serive1/AuthController, Errore durante il login: " + e.getMessage());
+            LOGGER.severe("in auth-service1/AuthController, Errore durante il login: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
@@ -64,10 +75,27 @@ public class AuthController {
 
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteUser(@RequestParam Long id) {
-        userService.deleteUserById(id);
-        return ResponseEntity.ok(Collections.singletonMap("message", "User deleted successfully"));
+        try {
+            // Controlla se l'utente esiste
+            User user = userService.findById(id);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("ID utente non esiste.");
+            }
+
+            // Controlla se l'utente è loggato
+            if (userService.isUserLoggedIn(user.getUsername())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Utente loggato, impossibile eliminare.");
+            }
+
+            userService.deleteUserById(id);
+            return ResponseEntity.ok(Collections.singletonMap("message", "User deleted successfully"));
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("ID utente non esiste.");
+        }
     }
 }
+
+
 
 
 

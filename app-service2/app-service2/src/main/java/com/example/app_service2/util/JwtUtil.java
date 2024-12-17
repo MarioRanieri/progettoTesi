@@ -6,6 +6,8 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.example.app_service2.model.User;
+
 import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
@@ -23,6 +25,8 @@ public class JwtUtil {
 
     @Value("${jwt.secret}")
     private String secret;
+
+    private Set<String> invalidatedTokens = new HashSet<>();
 
     public SecretKey getKey() {
         if (secret == null) {
@@ -43,16 +47,45 @@ public class JwtUtil {
                 .getBody();
     }
 
-    public boolean validateToken(String token) {
-        LOGGER.info("\nin app-service2/JwtUtil,\n Validating\n token: " + token);
-        try {
-            Claims claims = getClaims(token);
-            return !isTokenExpired(claims);
-        } catch (Exception e) {
-            LOGGER.severe("\nin app-service2/JwtUtil,\n Token\n validation failed: " + e.getMessage());
+    public boolean validateToken(String token, User user) {
+    LOGGER.info("\nin app-service2/JwtUtil,\n Validating\n token: " + token);
+    try {
+        Claims claims = getClaims(token);
+        String username = claims.getSubject();
+        // Controlla se il token è scaduto
+        boolean isTokenExpired = isTokenExpired(claims);
+        if (isTokenExpired) {
+            LOGGER.warning("Token expired");
             return false;
         }
+        // Controlla se il token è stato invalidato
+        boolean isTokenInvalidated = isTokenInvalidated(token);
+        if (isTokenInvalidated) {
+            LOGGER.warning("Token invalidated");
+            return false;
+        }
+        // Verifica che il token appartenga all'utente corretto
+        boolean isUsernameValid = username.equals(user.getUsername());
+        if (!isUsernameValid) {
+            LOGGER.warning("Token does not belong to the user");
+            return false;
+        }
+        return true;
+    } catch (Exception e) {
+        LOGGER.severe("\nin app-service2/JwtUtil,\n Token\n validation failed: " + e.getMessage());
+        return false;
     }
+}
+
+    private boolean isTokenInvalidated(String token) {
+    return invalidatedTokens.contains(token);
+}
+    // Metodo per invalidare un token 
+    public void invalidateToken(String token) { 
+        invalidatedTokens.add(token); 
+        LOGGER.info("Token invalidato: " + token); 
+    }
+
 
     private boolean isTokenExpired(Claims claims) {
         boolean expired = claims.getExpiration().before(new Date());

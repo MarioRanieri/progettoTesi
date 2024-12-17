@@ -9,8 +9,10 @@ import kong.unirest.Unirest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class UserService {
@@ -21,6 +23,9 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // Mappa per tenere traccia degli utenti loggati
+    private final ConcurrentHashMap<String, Boolean> loggedInUsers = new ConcurrentHashMap<>();
+
     public User saveUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
@@ -28,6 +33,15 @@ public class UserService {
         return savedUser;
     }
 
+    public User findById(Long id) { 
+        Optional<User> userOptional = userRepository.findById(id); 
+        if (userOptional.isPresent()) { 
+            return userOptional.get(); 
+        } else { 
+            return null; 
+        } 
+    }
+    
     public User findByUsername(String username) {
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isPresent()) {
@@ -115,7 +129,21 @@ public class UserService {
     public PasswordEncoder getPasswordEncoder() {
         return passwordEncoder;
     }
+
+    // Metodi per gestire lo stato di login
+    public boolean isUserLoggedIn(String username) {
+        return loggedInUsers.getOrDefault(username, false);
+    }
+
+    public void setUserLoggedIn(String username) {
+        loggedInUsers.put(username, true);
+    }
+
+    public void setUserLoggedOut(String username) {
+        loggedInUsers.remove(username);
+    }
 }
+
 
 
 
