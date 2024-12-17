@@ -1,0 +1,23 @@
+{
+  "properties": [
+    {
+      "name": "jwt.expiration",
+      "type": "java.lang.Long",
+      "description": "Durata di validità del token JWT in millisecondi",
+      "defaultValue": 3600000
+    },
+    {
+      "name": "jwt.secret",
+      "type": "java.lang.String",
+      "description": "La chiave segreta per firmare i token JWT",
+      "defaultValue": "una_segreta_parola"
+    },
+    {
+      "name": "jwt.algorithm",
+      "type": "java.lang.String",
+      "description": "Algoritmo utilizzato per firmare i token JWT",
+      "defaultValue": "HS256"
+    }
+  ]
+}
+

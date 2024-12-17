@@ -1,0 +1,72 @@
+# FLUSSO DI APP-SERVICE2
+
+Verifica dell'Username:
+Richiesta GET a /app-service2/check-username.
+UserController chiama UserService per verificare se l'username esiste nel database.
+
+Validazione dell'Utente:
+Richiesta POST a /app-service2/validate-user.
+UserController chiama UserService per verificare username e password.
+
+Operazioni sugli Utenti:
+UserService gestisce tutte le operazioni relative agli utenti, come la verifica dell'username, la validazione della password, e la gestione delle informazioni degli utenti.
+
+
+# DETTAGLI DELLE COMPONENTI
+
+
+# 1. PACCHETTO CONFIG
+SecurityConfig.java
+DESCRIZIONE: Configura la sicurezza dell'applicazione. Definisce quali endpoint sono pubblici e quali richiedono autenticazione.
+FUNZIONI CHIAVE:
+Disabilita CSRF.
+
+Permette l'accesso pubblico agli endpoint /app-service2/check-username e /app-service2/validate-user.
+
+Configura la gestione delle sessioni come stateless.
+
+Configura il server di risorse OAuth2 per la gestione dei token JWT.
+
+
+# 2. PACCHETTO CONTROLLER
+UserController.java
+DESCRIZIONE: Gestisce le richieste relative agli utenti e interagisce con UserService2 per eseguire le operazioni necessarie.
+ENDPOINT PRINCIPALI:
+/check-username: Verifica se un nome utente esiste nel database.
+
+/validate-user: Valida l'username e la password.
+
+
+# 3. PACCHETTO EXCEPTION
+UserNotFoundException.java
+DESCRIZIONE: Eccezione personalizzata che viene lanciata quando un utente non viene trovato nel database.
+
+
+# 4. PACCHETTO MODEL
+User.java
+DESCRIZIONE: Rappresenta l'utente.
+ATTRIBUTI PRINCIPALI:
+id: Identificatore univoco dell'utente.
+username: Nome utente.
+password: Password dell'utente.
+email: Email dell'utente.
+authorities: Ruoli e autorizzazioni dell'utente.
+
+
+# 5. PACCHETTO REPOSITORY
+UserRepository.java
+DESCRIZIONE: Interfaccia di accesso ai dati degli utenti.
+METODI: 
+Operazioni CRUD ineittate.
+findByUsername: Cerca un utente per username.
+
+
+# 6. PACCHETTO SERVICE
+UserService2.java
+DESCRIZIONE: Gestisce le operazioni principali legate agli utenti.
+FUNZIONI CHIAVE:
+usernameExists: Verifica se un nome utente esiste.
+findByUsername: Trova un utente per nome utente.
+validateUser: Valida l'username e la password.
+saveUser: Salva un nuovo utente.
+deleteUserById: Elimina un utente per ID.

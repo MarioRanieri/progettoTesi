@@ -1,0 +1,101 @@
+# FLUSSO DI AUTH-SERVICE1
+
+Registrazione:
+Utente invia una richiesta POST a /auth/register.
+AuthController chiama UserService per registrare l'utente.
+UserService verifica se l'username esiste tramite app-service2.
+Se l'username è disponibile, salva il nuovo utente nel database con la password criptata.
+
+Login:
+Utente invia una richiesta POST a /auth/login.
+AuthController chiama UserService per autenticare l'utente.
+UserService verifica username e password tramite app-service2.
+validatePassword confronta la password inserita con quella memorizzata nel database.
+Se l'utente è autenticato correttamente, JwtUtil genera un token JWT.
+
+Token JWT:
+Il token JWT generato viene ritornato all'utente.
+app-service2 verifica e valida il token JWT per l'accesso agli endpoint protetti.
+
+# DETTAGLI DELLE COMPONENTI
+
+# 1. PACCHETTO CONFIG
+SecurityConfig.java
+DESCRIZIONE: Configura la sicurezza dell'applicazione. Definisce quali endpoint sono pubblici e quali richiedono autenticazione.
+FUNZIONI CHIAVE:
+Disabilita CSRF.
+
+Permette l'accesso pubblico agli endpoint /auth/register, /auth/login, e /oauth2/jwks.
+
+Configura la gestione delle sessioni come stateless.
+
+Configura il login e il logout.
+
+
+# 2. PACCHETTO CONTROLLER
+AuthController.java
+DESCRIZIONE: Gestisce le richieste di autenticazione e registrazione degli utenti.
+ENDPOINT PRINCIPALI:
+/auth/register: Registra un nuovo utente. Utilizza UserService per verificare l'esistenza dell'username tramite app-service2 e salvare l'utente.
+
+/auth/login: Autentica un utente. Utilizza UserService per verificare username e password tramite app-service2 e genera un token JWT.
+
+/auth/userinfo: Ottiene informazioni sull'utente autenticato.
+
+/auth/delete: Elimina un utente.
+
+
+
+JwkSetController.java
+DESCRIZIONE: Espone le chiavi pubbliche per la verifica dei token JWT.
+ENDPOINT PRINCIPALE:
+/oauth2/jwks: Fornisce una chiave pubblica generata dinamicamente in formato JWKS.
+
+
+# 3. PACCHETTO EXCEPTION
+UserNotFoundException.java
+DESCRIZIONE: Eccezione personalizzata che viene lanciata quando un utente non viene trovato nel database.
+
+# 4. PACCHETTO MODEL
+User.java
+DESCRIZIONE: Rappresenta l'utente.
+ATTRIBUTI PRINCIPALI:
+id: Identificatore univoco dell'utente.
+
+username: Nome utente.
+
+password: Password dell'utente.
+
+email: Email dell'utente.
+
+authorities: Ruoli e autorizzazioni dell'utente.
+
+# 5. PACCHETTO REPOSITORY
+UserRepository.java
+DESCRIZIONE: Interfaccia di accesso ai dati degli utenti.
+METODI: Operazioni CRUD ineittate
+findByUsername: Cerca un utente per username.
+
+# 6. PACCHETTO SERVICE
+UserService.java
+DESCRIZIONE: Gestisce le operazioni principali legate agli utenti e le interazioni con app-service2.
+FUNZIONI CHIAVE:
+saveUser: Salva un nuovo utente.
+
+findByUsername: Trova un utente per username.
+
+validatePassword: Valida la password di un utente.
+
+deleteUserById: Elimina un utente per ID.
+
+registerUser: Registra un utente verificando l'username tramite app-service2.
+
+authenticateUser: Autentica un utente verificando username e password tramite app-service2.
+
+# 7. PACCHETTO UTIL
+JwtUtil.java
+DESCRIZIONE: Gestisce la creazione dei token JWT.
+METODI PRINCIPALI:
+generateToken: Genera un token JWT per un nome utente.
+
+createToken: Crea un token JWT con i claim e il soggetto specificati
