@@ -9,9 +9,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.logging.Logger;
 
+/**
+ * Servizio che gestisce le operazioni relative agli utenti nell'applicazione.
+ * <p>
+ * Fornisce metodi per la verifica dell'esistenza di un nome utente,
+ * la ricerca di un utente, la validazione delle credenziali,
+ * il salvataggio di un nuovo utente e la cancellazione di un utente.
+ * </p>
+ */
 @Service
 public class UserService {
+
+    private static final Logger LOGGER = Logger.getLogger(UserService.class.getName());
 
     @Autowired
     private UserRepository userRepository;
@@ -19,40 +30,81 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * Verifica se un nome utente esiste già nel sistema.
+     *
+     * @param username il nome utente da verificare.
+     * @return {@code true} se il nome utente esiste, {@code false} altrimenti.
+     */
     public boolean usernameExists(String username) {
-        return userRepository.findByUsername(username).isPresent();
+        boolean exists = userRepository.findByUsername(username).isPresent();
+        LOGGER.info("Verifica dell'esistenza del nome utente '" + username + "': " + exists);
+        return exists;
     }
 
-    public User findByUsername(String username) {
-        Optional<User> userOptional=userRepository.findByUsername(username);
-        System.out.println("ture or false? " + userOptional.isPresent());
+    /**
+     * Trova un utente in base al nome utente.
+     *
+     * @param username il nome utente dell'utente da trovare.
+     * @return l'utente trovato.
+     * @throws UserNotFoundException se l'utente non viene trovato.
+     */
+    public User findByUsername(String username) throws UserNotFoundException {
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        LOGGER.info("Ricerca dell'utente con nome utente: " + username);
         if (userOptional.isPresent()) {
-            System.out.println("User trovato in app-service2/userService: " + userOptional.get().getUsername());
+            LOGGER.info("Utente trovato: " + userOptional.get().getUsername());
             return userOptional.get();
         } else {
-            System.out.println("User non trovato in app-service2/userService: " + username);
-            throw new UserNotFoundException("User non trovato in app-service2/userService con questo username: " + username);
+            LOGGER.warning("Utente non trovato: " + username);
+            throw new UserNotFoundException("Utente non trovato con questo nome utente: " + username);
         }
     }
-    
-    public boolean validateUser(String username, String password) {
-        User user=findByUsername(username);
-        return passwordEncoder.matches(password, user.getPassword());
+
+    /**
+     * Valida le credenziali di un utente confrontando la password fornita con quella memorizzata.
+     *
+     * @param username il nome utente dell'utente.
+     * @param password la password fornita dall'utente.
+     * @return {@code true} se le credenziali sono valide, {@code false} altrimenti.
+     * @throws UserNotFoundException se l'utente non viene trovato.
+     */
+    public boolean validateUser(String username, String password) throws UserNotFoundException {
+        User user = findByUsername(username);
+        boolean isValid = passwordEncoder.matches(password, user.getPassword());
+        LOGGER.info("Validazione delle credenziali per l'utente '" + username + "': " + isValid);
+        return isValid;
     }
-    
+
+    /**
+     * Salva un nuovo utente nel database dopo aver criptato la password.
+     *
+     * @param user l'utente da salvare.
+     * @return l'utente salvato con l'ID generato.
+     */
     public User saveUser(User user) {
-        System.out.println("Salvataggio utente in saveUser di app-service2: " + user.getUsername() + ", " + user.getEmail());
+        LOGGER.info("Salvataggio dell'utente: " + user.getUsername() + ", " + user.getEmail());
+
+        // Cripta la password prima di salvarla
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
         User savedUser = userRepository.save(user);
-        System.out.println("User salvato in saveUser di app-service2: " + savedUser.getUsername());
+        LOGGER.info("Utente salvato con successo: " + savedUser.getUsername());
         return savedUser;
     }
 
+    /**
+     * Elimina un utente dal database in base all'ID.
+     *
+     * @param id l'ID dell'utente da eliminare.
+     */
     public void deleteUserById(Long id) {
+        LOGGER.info("Eliminazione dell'utente con ID: " + id);
         userRepository.deleteById(id);
-        System.out.println("User eliminato con ID: " + id);
+        LOGGER.info("Utente eliminato con successo con ID: " + id);
     }
 }
+
 
 
 

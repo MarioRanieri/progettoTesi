@@ -2,73 +2,44 @@ package com.example.auth_service1.util;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Base64;
+import java.security.PrivateKey;
+import java.security.KeyPair;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import javax.crypto.SecretKey;
-
-// Nessun metodo di validazione o analisi del token, qui viene solo generato
+/**
+ * Utility per la generazione e la validazione dei token JWT.
+ */
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}") 
-    private String secret;
+    private final PrivateKey privateKey;
 
-    // Genera una SecretKey dalla chiave segreta 
-    private SecretKey getKey() {
-        System.out.println("prendo la chiave dall'application.properties in auth-service1/JwtUtil: " + secret);
-        return Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
+    /**
+     * Costruttore che riceve la chiave privata tramite iniezione delle dipendenze.
+     *
+     * @param keyPair La coppia di chiavi RSA.
+     */
+    public JwtUtil(KeyPair keyPair) {
+        this.privateKey = keyPair.getPrivate();
     }
 
-    public String generateToken(String username, Set<String> authorities) {
-        Map<String, Object> claims = new HashMap<>();
-        List<Map<String, String>> authoritiesList = authorities.stream()
-                .map(authority -> {
-                    Map<String, String> map = new HashMap<>();
-                    map.put("authority", authority.startsWith("ROLE_") ? authority : "ROLE_" + authority);
-                    return map;
-                })
-                .collect(Collectors.toList());
-    
-        claims.put("authorities", authoritiesList);
-        System.out.println("\n ora genero il token in auth-service1/JwtUtil: ");
-        String token = createToken(claims, username);
-        System.out.println("Token generato: " + token);
-        return token;
-    }
-    
-    private String createToken(Map<String, Object> claims, String subject) {
-        try {
-            System.out.println("Claims: " + claims);
-            System.out.println("Subject: " + subject);
-    
-            String token = Jwts.builder()
-                    .setClaims(claims)
-                    .setSubject(subject)
-                    .setIssuedAt(new Date(System.currentTimeMillis()))
-                    .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 ora
-                    .signWith(getKey(), SignatureAlgorithm.HS256)
-                    .compact();
-            System.out.println("Token creato: " + token);
-            return token;
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Errore durante la creazione del token: " + e.getMessage());
-            return null;
-        }
-    }
-    
-    
+    /**
+     * Genera un token JWT per un dato nome utente.
+     *
+     * @param username Il nome utente per il quale generare il token.
+     * @return Il token JWT generato.
+     */
+    public String generateToken(String username) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + 1000 * 60 * 60); // 1 ora di validità
 
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(privateKey, SignatureAlgorithm.RS256)
+                .compact();
+    }
 }
-
-
